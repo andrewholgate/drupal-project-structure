@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="phing-drupal" default="load-properties" phingVersion="2.9.1">
+
+  <!-- Init -->
+  <target name="init" depends="load-properties" unless="project.initialized">
+    <property name="project.initialized" value="true" />
+  </target>
+
+  <!-- Load project properties -->
+  <target name="load-properties">
+    <php function="dirname" returnProperty="phing.dir">
+      <param value="${phing.file}" />
+    </php>
+    <property name="projectroot.dir" value="${phing.dir}" />
+    <property name="properties.file" value="build.properties" />
+    <property file="${properties.file}" override="true" />
+  </target>
+
+  <target name="load-keys" depends="init" description="Load multiple SSH keys.">
+    <exec command="eval `ssh-agent -s`" passthru="true" logoutput="true" checkreturn="true" />
+    <foreach list="${ssh.keys}" param="key" target="load-key" delimiter="," />
+  </target>
+
+  <target name="load-key" depends="init" description="Load a single SSH key.">
+    <exec command="ssh-add ${key}" passthru="true" logoutput="true" checkreturn="true" />
+  </target>
+
+  <target name="clone" depends="init" description="Clone specified project branch and tag.">
+    <exec command="git clone ${repository.url} ${release.dir}/${dir}"
+      passthru="true" logoutput="true" checkreturn="true"/>
+    <exec command="git checkout tags/${tag}" dir="${release.dir}/${dir}"
+      passthru="true" logoutput="true" checkreturn="true"/>
+  </target>
+
+  <target name="rsync-files" depends="init" description="Rsync files directory">
+    <mkdir dir="${release.dir}/${destination}/${files.dir}" />
+    <exec command="rsync -av --progress ${release.dir}/${source}/${files.dir}/ ${release.dir}/${destination}/${files.dir}/ --exclude css --exclude advagg_js --exclude advagg_css"
+     passthru="true" logoutput="true" checkreturn="true" />
+  </target>
+
+  <target name="release-switch" depends="init" description="Switch release directories.">
+    <delete file="${release.current.dir}" />
+    <symlink target="${release.dir}/${new}/${docroot.dir}" link="${release.current.dir}" />
+  </target>
+
+  <!-- Phing target wrapper -->
+  <target name="exec" depends="init" description="A wrapper target for Phing commands in a project release directory.">
+    <exec command="phing ${command}" dir="${release.dir}/${dir}"
+      passthru="true" logoutput="true" checkreturn="true"/>
+  </target>
+
+</project>
