@@ -34,13 +34,13 @@
 
   <target name="rsync-files" depends="init" description="Rsync files directory">
     <mkdir dir="${release.dir}/${destination}/${files.dir}" />
-    <exec command="rsync -av --progress ${release.dir}/${source}/${files.dir}/ ${release.dir}/${destination}/${files.dir}/ --exclude css --exclude advagg_js --exclude advagg_css"
+    <exec command="rsync -av --progress ${release.dir}/${source}/${files.dir}/ ${release.dir}/${destination}/${files.dir}/"
      passthru="true" logoutput="true" checkreturn="true" />
   </target>
 
   <target name="release-switch" depends="init" description="Switch release directories.">
     <delete file="${release.current.dir}" />
-    <symlink target="${release.dir}/${new}/${docroot.dir}" link="${release.current.dir}" />
+    <symlink target="${release.dir}/${dir}/${docroot.dir}" link="${release.current.dir}" />
   </target>
 
   <!-- Phing target wrapper -->

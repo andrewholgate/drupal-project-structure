@@ -16,7 +16,6 @@ cd project
 
 ## 2. Add Project Properties
 
-
 ```
 # Add custom project properties to the Phing configuration file, such as the repository URL, etc.
 vim build.properties
@@ -27,6 +26,8 @@ vim build.properties
 Use the new release directory name and repository release tag to be cloned.
 
 ```
+cd /var/www/project
+# "dir" is the release/ sub-directory for the release and "tag" is the git tag from the repository.
 phing clone -Ddir=v1.0.0 -Dtag=v1.0.0
 ```
 
@@ -54,10 +55,12 @@ For production environment:
 phing exec -Dcommand=settings-prod -Ddir=v1.0.0
 ```
 
-
 ## 5. Build Project
 
+**Note:** Where ever the suffix `-prod` is used, it can substituted for `-dev`to match the environment you are setting up.
+
 ```
+# Note that "dir" is the directory within release/ to install the project.
 # Install project for production.
 phing exec -Dcommand=install-prod -Ddir=v1.0.0
 
@@ -71,7 +74,7 @@ phing exec -Dcommand=permissions-prod -Ddir=v1.0.0
 ## 6. Link the Project
 
 ```
-phing release-switch -Dnew=v1.0.0
+phing release-switch -Ddir=v1.0.0
 ```
 
 # Create New Release
@@ -83,6 +86,7 @@ Follow steps 3 - 5 above, then:
 ## 1. Backup Database
 
 ```
+# Note that "dir" is the directory within release/ of the current live release.
 # Create a database backup of current release version.
 phing exec -Dcommand=db-export -Ddir=v1.0.0
 ```
@@ -90,6 +94,7 @@ phing exec -Dcommand=db-export -Ddir=v1.0.0
 ## 2. Set Site Offline
 
 ```
+# Note that "dir" is the directory within release/ of the current live release.
 # Put current site into maintenance mode (use the release version of the current site)
 phing exec -Dcommand=offline -Ddir=v1.0.0
 ```
@@ -97,12 +102,14 @@ phing exec -Dcommand=offline -Ddir=v1.0.0
 ## 3. Switch Release Directories
 
 ```
-phing release-switch -Dnew=v1.0.1
+# Note that "dir" is the directory within release/ of the new release.
+phing release-switch -Ddir=v1.0.1
 ```
 
 ## 4. Update Database
 
 ```
+# Note that "dir" is the directory within release/ of the new release.
 # Update database with code changes (Features revert and database updates.)
 phing exec -Dcommand=update-database -Ddir=v1.0.1
 ```
@@ -110,5 +117,6 @@ phing exec -Dcommand=update-database -Ddir=v1.0.1
 ## 5. Set Site Online
 
 ```
+# Note that "dir" is the directory within release/ of the new release.
 phing exec -Dcommand=online -Ddir=v1.0.1
 ```
