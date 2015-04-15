@@ -1,13 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project name="phing-drupal" default="load-properties" phingVersion="2.9.1">
 
-  <!-- Init -->
-  <target name="init" depends="load-properties" unless="project.initialized">
+  <target name="init" depends="load-properties" unless="project.initialized" hidden="true">
     <property name="project.initialized" value="true" />
   </target>
 
-  <!-- Load project properties -->
-  <target name="load-properties">
+  <target name="load-properties" hidden="true">
     <php function="dirname" returnProperty="phing.dir">
       <param value="${phing.file}" />
     </php>
@@ -25,28 +23,114 @@
     <exec command="ssh-add ${key}" passthru="true" logoutput="true" checkreturn="true" />
   </target>
 
-  <target name="clone" depends="init" description="Clone specified project branch and tag.">
+  <target name="clone" depends="init" description="Clone git project using a tag.">
     <exec command="git clone ${repository.url} ${release.dir}/${dir}"
       passthru="true" logoutput="true" checkreturn="true"/>
     <exec command="git checkout tags/${tag}" dir="${release.dir}/${dir}"
       passthru="true" logoutput="true" checkreturn="true"/>
   </target>
 
-  <target name="rsync-files" depends="init" description="Rsync files directory">
+  <target name="rsync-files" depends="init" description="Rsync the project files directory.">
     <mkdir dir="${release.dir}/${destination}/${files.dir}" />
     <exec command="rsync -av --progress ${release.dir}/${source}/${files.dir}/ ${release.dir}/${destination}/${files.dir}/"
      passthru="true" logoutput="true" checkreturn="true" />
   </target>
 
-  <target name="release-switch" depends="init" description="Switch release directories.">
+  <target name="release-switch" depends="init" description="Switch to a specified release directory.">
     <delete file="${release.current.dir}" />
     <symlink target="${release.dir}/${dir}/${docroot.dir}" link="${release.current.dir}" />
   </target>
 
-  <!-- Phing target wrapper -->
   <target name="exec" depends="init" description="A wrapper target for Phing commands in a project release directory.">
     <exec command="phing ${command}" dir="${release.dir}/${dir}"
-      passthru="true" logoutput="true" checkreturn="true"/>
+      passthru="true" logoutput="true" checkreturn="true" />
+  </target>
+
+  <!--
+    Usage: phing deploy:prod -DdirOld=v1.0.0 -DdirNew=v1.0.1 -Dtag=v1.0.1
+  -->
+  <target name="deploy:prod" depends="init, deploy-build:prod, deploy-release"
+    description="Deploy a new release into production." />
+
+  <!--
+    Usage: phing deploy-build:prod -DdirOld=v1.0.0 -DdirNew=v1.0.1 -Dtag=v1.0.1
+  -->
+  <target name="deploy-build:prod" depends="init" description="Deploy a new build without releasing into production.">
+    <property name="dir" value="${dirNew}" />
+    <phingcall target="clone" />
+
+    <phingcall target="exec">
+      <property name="command" value="install:prod" />
+    </phingcall>
+
+    <phingcall target="exec">
+      <property name="command" value="permissions:prod" />
+    </phingcall>
+
+    <property name="source" value="${dirOld}" />
+    <property name="destination" value="${dirNew}" />
+    <phingcall target="rsync-files" />
+
+    <phingcall target="exec">
+      <property name="command" value="permissions-project:prod" />
+    </phingcall>
+
+    <property name="dir" value="${dirOld}" />
+    <phingcall target="exec">
+      <property name="command" value="db-export" />
+    </phingcall>
+  </target>
+
+  <!--
+    Usage: phing deploy-release -DdirOld=v1.0.0 -DdirNew=v1.0.1
+  -->
+  <target name="deploy-release" depends="init" description="Release a new build into production.">
+    <property name="dir" value="${dirOld}" />
+    <phingcall target="exec">
+      <property name="command" value="offline" />
+    </phingcall>
+
+    <property name="dir" value="${dirNew}" />
+    <phingcall target="release-switch" />
+
+    <phingcall target="exec">
+      <property name="command" value="db-update" />
+    </phingcall>
+
+    <phingcall target="exec">
+      <property name="command" value="online" />
+    </phingcall>
+  </target>
+
+
+  <!--
+    Usage: phing deploy-first:prod -Ddir=v1.0.0 -Dtag=v1.0.0
+  -->
+  <target name="deploy-first:prod" depends="init" description="Deploy a release for the first time into production.">
+    <phingcall target="clone" />
+
+    <phingcall target="exec">
+      <property name="command" value="settings:prod" />
+    </phingcall>
+
+    <phingcall target="exec">
+      <property name="command" value="install:prod" />
+    </phingcall>
+
+    <phingcall target="exec">
+      <property name="command" value="permissions:prod" />
+    </phingcall>
+
+    <phingcall target="exec">
+      <property name="command" value="permissions-project:prod" />
+    </phingcall>
+
+    <phingcall target="release-switch" />
+
+    <phingcall target="exec">
+      <property name="command" value="db-update" />
+    </phingcall>
+
   </target>
 
 </project>
