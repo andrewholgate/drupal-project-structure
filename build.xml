@@ -21,6 +21,7 @@
 
   <target name="load-key" depends="init" description="Load a single SSH key.">
     <exec command="ssh-add ${key}" passthru="true" logoutput="true" checkreturn="true" />
+    <echo>Added ssh key ${key}</echo>
   </target>
 
   <target name="clone" depends="init" description="Clone git project using a tag.">
@@ -28,17 +29,20 @@
       passthru="true" logoutput="true" checkreturn="true"/>
     <exec command="git checkout tags/${tag}" dir="${release.dir}/${dir}"
       passthru="true" logoutput="true" checkreturn="true"/>
+    <echo>Cloned tags/${tag} from ${repository.url} into ${release.dir}/${dir}</echo>
   </target>
 
-  <target name="rsync-files" depends="init" description="Rsync the project files directory.">
+  <target name="rsync-files" depends="init" description="Rsync the project files directories.">
     <mkdir dir="${release.dir}/${destination}/${files.dir}" />
     <exec command="rsync -av --progress ${release.dir}/${source}/${files.dir}/ ${release.dir}/${destination}/${files.dir}/"
      passthru="true" logoutput="true" checkreturn="true" />
+     <echo>Files directories rsynched, from ${release.dir}/${source}/${files.dir}/ to ${release.dir}/${destination}/${files.dir}/</echo>
   </target>
 
   <target name="release-switch" depends="init" description="Switch to a specified release directory.">
     <delete file="${release.current.dir}" />
     <symlink target="${release.dir}/${dir}/${docroot.dir}" link="${release.current.dir}" />
+    <echo>Switched to ${dir} release directory.</echo>
   </target>
 
   <target name="exec" depends="init" description="A wrapper target for Phing commands in a project release directory.">
@@ -56,7 +60,7 @@
     Usage: phing deploy-build:prod -DdirOld=v1.0.0 -DdirNew=v1.0.1 -Dtag=v1.0.1
   -->
   <target name="deploy-build:prod" depends="init" description="Deploy a new build without releasing into production.">
-    <property name="dir" value="${dirNew}" />
+    <property name="dir" value="${dirNew}" override="true" />
     <phingcall target="clone" />
 
     <phingcall target="exec">
@@ -67,15 +71,15 @@
       <property name="command" value="permissions:prod" />
     </phingcall>
 
-    <property name="source" value="${dirOld}" />
-    <property name="destination" value="${dirNew}" />
+    <property name="source" value="${dirOld}" override="true" />
+    <property name="destination" value="${dirNew}" override="true" />
     <phingcall target="rsync-files" />
 
     <phingcall target="exec">
       <property name="command" value="permissions-project:prod" />
     </phingcall>
 
-    <property name="dir" value="${dirOld}" />
+    <property name="dir" value="${dirOld}" override="true" />
     <phingcall target="exec">
       <property name="command" value="db-export" />
     </phingcall>
@@ -85,12 +89,12 @@
     Usage: phing deploy-release -DdirOld=v1.0.0 -DdirNew=v1.0.1
   -->
   <target name="deploy-release" depends="init" description="Release a new build into production.">
-    <property name="dir" value="${dirOld}" />
+    <property name="dir" value="${dirOld}" override="true"/>
     <phingcall target="exec">
       <property name="command" value="offline" />
     </phingcall>
 
-    <property name="dir" value="${dirNew}" />
+    <property name="dir" value="${dirNew}" override="true"/>
     <phingcall target="release-switch" />
 
     <phingcall target="exec">
