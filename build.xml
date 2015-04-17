@@ -14,7 +14,7 @@
     <property file="${properties.file}" override="true" />
   </target>
 
-  <target name="load-keys" depends="init" description="Load multiple SSH keys.">
+  <target name="load-keys" depends="init" description="Load SSH keys from properties configuration.">
     <exec command="eval `ssh-agent -s`" passthru="true" logoutput="true" checkreturn="true" />
     <foreach list="${ssh.keys}" param="key" target="load-key" delimiter="," />
   </target>
@@ -57,9 +57,10 @@
     description="Deploy a new release into production." />
 
   <!--
-    Usage: phing deploy-build:prod -DdirOld=v1.0.0 -DdirNew=v1.0.1 -Dtag=v1.0.1
+    Usage: phing deploy-build:prod -DdirOld=v1.0.0 -DdirNew=v1.0.1 -Dtag=v1.0.1 [-Ddry-run]
   -->
   <target name="deploy-build:prod" depends="init" description="Deploy a new build without releasing into production.">
+
     <property name="dir" value="${dirNew}" override="true" />
     <phingcall target="clone" />
 
@@ -67,17 +68,27 @@
       <property name="command" value="install:prod" />
     </phingcall>
 
-    <phingcall target="exec">
-      <property name="command" value="permissions:prod" />
-    </phingcall>
+    <if>
+      <not><isset property="dry-run" /></not>
+      <then>
+        <phingcall target="exec">
+          <property name="command" value="permissions:prod" />
+        </phingcall>
+      </then>
+   </if>
 
     <property name="source" value="${dirOld}" override="true" />
     <property name="destination" value="${dirNew}" override="true" />
     <phingcall target="rsync-files" />
 
-    <phingcall target="exec">
-      <property name="command" value="permissions-project:prod" />
-    </phingcall>
+    <if>
+      <not><isset property="dry-run" /></not>
+      <then>
+        <phingcall target="exec">
+          <property name="command" value="permissions-project:prod" />
+        </phingcall>
+      </then>
+   </if>
 
     <property name="dir" value="${dirOld}" override="true" />
     <phingcall target="exec">
@@ -134,7 +145,6 @@
     <phingcall target="exec">
       <property name="command" value="db-update" />
     </phingcall>
-
   </target>
 
 </project>

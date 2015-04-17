@@ -58,7 +58,11 @@ cd /var/www/project
 #  -DdirOld is the name of the current project release directory.
 #  -DdirNew is the name of the new project release directory.
 #  -Dtag is the name of the git repository tag to clone.
+#  -Ddry-run is an optional parameter to mimic the production installation without production specific permissioning targets.
 phing deploy-build:prod -DdirOld=v1.0.0 -DdirNew=v1.0.1 -Dtag=v1.0.1
+
+# Perform a dry-run to mimic the production installation without production specific permissioning targets.
+phing deploy-build:prod -DdirOld=v1.0.0 -DdirNew=v1.0.1 -Dtag=v1.0.1 -Ddry-run
 
 # Deploy the new release.
 #  -DdirOld is the name of the current project release directory.
