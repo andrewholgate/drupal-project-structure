@@ -32,9 +32,12 @@ vim build.properties
 cd /var/www/project
 
 # First production deployment
+
 # Parameters:
 #  -Ddir is the name of the new project release directory.
+# Use either -Dtag or -Dbranch
 #  -Dtag is the name of the git repository tag to clone.
+#  -Dbranch is the name of the git repository branch to clone.
 
 phing deploy-first:prod -Ddir=v1.0.0 -Dtag=v1.0.0
 ```
@@ -55,10 +58,15 @@ This is the more manual and safer option as it will not release it into producti
 cd /var/www/project
 
 # Build a new release without deploying.
+
+# Parameters:
 #  -DdirOld is the name of the current project release directory.
 #  -DdirNew is the name of the new project release directory.
+# Use either -Dtag or -Dbranch
 #  -Dtag is the name of the git repository tag to clone.
+#  -Dbranch is the name of the git repository branch to clone.
 #  -Ddry-run is an optional parameter to mimic the production installation without production specific permissioning targets.
+
 phing deploy-build:prod -DdirOld=v1.0.0 -DdirNew=v1.0.1 -Dtag=v1.0.1
 
 # Perform a dry-run to mimic the production installation without production specific permissioning targets.
@@ -80,7 +88,9 @@ cd /var/www/project
 # New release deployment
 #  -DdirOld is the name of the current project release directory.
 #  -DdirNew is the name of the new project release directory.
+# Use either -Dtag or -Dbranch
 #  -Dtag is the name of the git repository tag to clone.
+#  -Dbranch is the name of the git repository branch to clone.
 phing deploy:prod -DdirOld=v1.0.0 -DdirNew=v1.0.1 -Dtag=v1.0.1
 ```
 

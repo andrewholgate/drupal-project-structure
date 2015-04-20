@@ -27,9 +27,23 @@
   <target name="clone" depends="init" description="Clone git project using a tag.">
     <exec command="git clone ${repository.url} ${release.dir}/${dir}"
       passthru="true" logoutput="true" checkreturn="true"/>
-    <exec command="git checkout tags/${tag}" dir="${release.dir}/${dir}"
-      passthru="true" logoutput="true" checkreturn="true"/>
-    <echo>Cloned tags/${tag} from ${repository.url} into ${release.dir}/${dir}</echo>
+
+    <if><isset property="tag" />
+      <then>
+        <exec command="git checkout tags/${tag}" dir="${release.dir}/${dir}"
+          passthru="true" logoutput="true" checkreturn="true"/>
+        <echo>Cloned tags/${tag} from ${repository.url} into ${release.dir}/${dir}</echo>
+      </then>
+   </if>
+
+    <if><isset property="branch" />
+      <then>
+        <exec command="git checkout ${branch}" dir="${release.dir}/${dir}"
+          passthru="true" logoutput="true" checkreturn="true"/>
+        <echo>Cloned branch ${branch} from ${repository.url} into ${release.dir}/${dir}</echo>
+      </then>
+   </if>
+
   </target>
 
   <target name="rsync-files" depends="init" description="Rsync the project files directories.">
